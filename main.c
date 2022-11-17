@@ -1,5 +1,3 @@
-
-
 #include <math.h>
 #include <windows.h>
 #include <stdio.h>
@@ -7,8 +5,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hashmap.h"
+#include "list.h"
 
 //Declaracion Struct
+
+struct NodeGrafo{
+    Nivel* nivel;
+    List* nivelAdesbloquear;
+    bool completado;
+};
+
+typedef struct{
+    Enemigo* e;
+    Personaje* p;
+    Objeto* o;
+}Nivel;
 
 typedef struct{
 
