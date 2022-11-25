@@ -117,7 +117,7 @@ void avanzar();
 void Mostrarinventario();
 void Mostrarestado();
 bool esnemigo(NodoGrafo*);
-void combatir();
+void combatir(Enemigo*);
 void tomarobjeto();
 
 Grafo* grafo;
@@ -181,7 +181,7 @@ int main(){
                             break;
                         }
                     }
-                    if (num==4 || (personaje->Vida < 0)){
+                    if (num==4 || (personaje->Vida <= 0)){
                         break;
                     }
                     printf("\n");
@@ -301,9 +301,8 @@ bool esenmigo(NodoGrafo* n){
     return true;
 }
 
-void combatir(){
+void combatir(Enemigo* e){
     int opcion;
-    Enemigo* e = (Enemigo*)malloc(sizeof(Enemigo));
     Objeto* pocion = (Objeto*)malloc(sizeof(Objeto));
     Pair_2* pair_o = (Pair_2*)malloc(sizeof(Pair_2));
     e = grafo->nodoactual->enemigo;
@@ -313,7 +312,7 @@ void combatir(){
     printf("Vida personaje: %d", personaje->Vida);
     printf("Armadura: %d", personaje->Armadura->Dano_vida_Armadura);
     printf("Vida enemigo: %d", e->Vida);
-    while(personaje->Vida>0 || e->Vida>0){
+    while(personaje->Vida>0 && e->Vida>0){
         switch (opcion){
             case 1:{
                 e->Vida -= personaje->Arma->Dano_vida_Armadura;
@@ -372,16 +371,15 @@ void avanzar(){
             scanf("%d", &opcion);
             if (opcion == 1){
                 grafo->nodoactual = grafo->nodoactual->nodoizquierdo;
-
                 Pair_2* aux_izq = searchMap(Mapaenemigo,niveles->camino_izq);
                 if(aux_izq==NULL){
                     aux_izq = searchMap(Mapaobjeto,niveles->camino_izq);
                     Objeto* objeto_izq = aux_izq->value;
-                    grafo->nodoactual->objeto= objeto_izq;
+                    grafo->nodoactual->objeto = objeto_izq;
                 }
                 else{
                     Enemigo* enemigo_izq = aux_izq->value;
-                    grafo->nodoactual->enemigo= enemigo_izq;
+                    grafo->nodoactual->enemigo = enemigo_izq;
                 }
             }
             else{
@@ -400,7 +398,7 @@ void avanzar(){
         }
         if(esnemigo(grafo->nodoactual)){
             printf("Te has encontrado con un enemigo");
-            combatir();
+            combatir(grafo->nodoactual->enemigo);
         }
         else{
             printf("Te has encontrado con un objeto");
