@@ -40,14 +40,16 @@ typedef struct{
 
 }Enemigo;
 
-typedef struct{
+typedef struct NodoGrafo NodoGrafo;
+
+struct NodoGrafo{
 
     Enemigo* enemigo;
     Objeto* objeto;
     NodoGrafo* nodoizquierdo;
     NodoGrafo* nododerecha;
 
-}NodoGrafo;
+};
 
 typedef struct{
     
@@ -59,9 +61,9 @@ typedef struct{
 
 typedef struct{
 
-    int nombreNivel;
-    char camino_der;
-    char camino_izq;
+    char nombreNivel[30];
+    char camino_der[30];
+    char camino_izq[30];
 
 }Nivel;
 
@@ -116,7 +118,7 @@ void CargarNiveles(Grafo*);
 void avanzar();
 void Mostrarinventario();
 void Mostrarestado();
-bool esnemigo(NodoGrafo*);
+bool esenemigo(NodoGrafo*);
 void combatir(Enemigo*);
 void tomarobjeto();
 
@@ -127,18 +129,18 @@ HashMap* Mapainventario;
 Personaje* personaje;
 
 int main(){
-    int num;
+    int num, opcion;
 
-    TreeMap* Marcadores = createTreeMap(lower_than_int);
-    Mapaenemigo = (Enemigo*)malloc(sizeof(Enemigo));
-    Mapaobjeto = (Objeto*)malloc(sizeof(Objeto));
-    Mapainventario = (Objeto*)malloc(sizeof(Objeto));
+    //TreeMap* Marcadores = createTreeMap(lower_than_int);
+    Mapaenemigo = createMap(55);
+    Mapaobjeto = createMap(55);
+    Mapainventario = createMap(55);
     grafo = (Grafo*)malloc(sizeof(Grafo));
     Cargarenemigos(Mapaenemigo);
     Cargarobjetos(Mapaobjeto);
     CargarNiveles(grafo);
 
-    Usuario* u = (Usuario*)malloc(sizeof(Usuario));
+    //Usuario* u = (Usuario*)malloc(sizeof(Usuario));
     personaje = (Personaje*)malloc(sizeof(Personaje));
 
     menu();
@@ -152,8 +154,20 @@ int main(){
         switch (num){
 	        case 1:{
 
-                char ing_nombre;
-                int opcion, aux;
+                char ing_nombre[30];
+                int aux;
+
+                Objeto* aux_objeto1 = (Objeto*)malloc(sizeof(Objeto));
+                Pair_2* aux_pairO = (Pair_2*)malloc(sizeof(Pair_2));
+                aux_pairO = searchMap(Mapaobjeto, "Ropa de campesino");
+                aux_objeto1 = aux_pairO->value;
+                personaje->Armadura = aux_objeto1;
+                insertMap(Mapainventario, aux_objeto1->Nombre_Item, aux_objeto1);
+
+                aux_pairO = searchMap(Mapaobjeto, "Punos");
+                aux_objeto1 = aux_pairO->value;
+                personaje->Arma = aux_objeto1;
+                insertMap(Mapainventario, aux_objeto1->Nombre_Item, aux_objeto1);
 
                 printf("Ingrese nombre personaje: ");
                 fflush(stdin);
@@ -161,6 +175,8 @@ int main(){
                 strcpy(personaje->Nombre_Usuario, ing_nombre);
                 personaje->Vida = 100;
                 personaje->Oro = 0;
+
+                printf("\n");
 
                 submenu();
                 fflush(stdin);
@@ -181,21 +197,23 @@ int main(){
                             break;
                         }
                     }
-                    if (num==4 || (personaje->Vida <= 0)){
+                    if (opcion == 4 || (personaje->Vida <= 0)){
                         break;
                     }
+                    submenu();
+                    scanf("%d", &opcion);
                     printf("\n");
-                    printf("Ingrese otro valor: ");
-                    scanf("%d", &aux);
-                    while(aux<1||aux>4){
+                    while(opcion<1||opcion>4){
                         printf("Introdusca un numero valido: ");
-                        scanf("%d", &aux);
+                        scanf("%d", &opcion);
                     }
                 }
             }
             case 2:{
 
-                int opcion;
+                /*int opcion;
+
+                cargarusuario();
 
                 mostrar(Marcadores, lastTreeMap(Marcadores), prevTreeMap);
 
@@ -226,11 +244,12 @@ int main(){
                 }
                 else{
                     break;
-                }
+                }*/
+                break;
             }
         }
-        if (num==3 || (personaje->Vida < 0)){
-            printf("Juego finalizado");
+        if (num==3 || (personaje->Vida <= 0) || opcion == 4){
+            printf("Has acabado tu aventura");
             break;
         }
         printf("\n");
@@ -294,7 +313,7 @@ void mostrar(TreeMap *mapa, Pair *primero, Pair* (avanzar)(TreeMap *mapa)) {
     }
 }
 
-bool esenmigo(NodoGrafo* n){
+bool esenemigo(NodoGrafo* n){
     if(n->enemigo == NULL){
         return false;
     }
@@ -396,7 +415,7 @@ void avanzar(){
                 }
             }
         }
-        if(esnemigo(grafo->nodoactual)){
+        if(esenemigo(grafo->nodoactual)){
             printf("Te has encontrado con un enemigo");
             combatir(grafo->nodoactual->enemigo);
         }
@@ -409,21 +428,23 @@ void avanzar(){
 }
 
 void Mostrarinventario(){
+    printf("\n");
     Pair_2* pair_o = firstMap(Mapainventario);
     Objeto* o = pair_o->value;
     while(pair_o != NULL){
         o = pair_o->value;
         printf("%s / %s / %d / %d\n",o->Nombre_Item, o->Tipo, o->Dano_vida_Armadura, o->Nivel_o);
-        o = nextMap(Mapainventario);
+         pair_o = nextMap(Mapainventario);
     }
 
     int opcion;
-    char aux_objeto;
+    char aux_objeto[30];
     Objeto* pocion = (Objeto*)malloc(sizeof(Objeto));
     pair_o = (Pair_2*)malloc(sizeof(Pair_2));
     submenuinventario();
     fflush(stdin);
     scanf("%d", &opcion);
+    printf("\n");
     while(1){
         switch (opcion){
             case 1:{
@@ -431,6 +452,14 @@ void Mostrarinventario(){
                 fflush(stdin);
                 scanf("%[^\n]", aux_objeto);
                 pair_o = searchMap(Mapainventario, aux_objeto);
+                /*if(pair_o->value == NULL){
+                    printf("Objeto no encontrado");
+                    break;
+                }
+                else{
+                    personaje->Arma = pair_o->value;
+                    break;
+                }*/
                 personaje->Arma = pair_o->value;
                 break;
             }
@@ -439,6 +468,14 @@ void Mostrarinventario(){
                 fflush(stdin);
                 scanf("%[^\n]", aux_objeto);
                 pair_o = searchMap(Mapainventario, aux_objeto);
+                /*if(pair_o->value == NULL){
+                    printf("Objeto no encontrado");
+                    break;
+                }
+                else{
+                    personaje->Armadura = pair_o->value;
+                    break;
+                }*/
                 personaje->Armadura = pair_o->value;
                 break;
             }
@@ -459,7 +496,7 @@ void Mostrarinventario(){
             break;
         }
         printf("\n");
-        printf("Ingrese otro valor: ");
+        submenuinventario();
         fflush(stdin);
         scanf("%d", &opcion);
         while(opcion<1||opcion>4){
@@ -470,10 +507,12 @@ void Mostrarinventario(){
 }
 
 void Mostrarestado(){
-    printf("Vida personaje: %d", personaje->Vida);
-    printf("Armadura: %s / %d", personaje->Armadura->Nombre_Item, personaje->Armadura->Dano_vida_Armadura);
-    printf("Arma: %s / %d", personaje->Arma->Nombre_Item, personaje->Arma->Dano_vida_Armadura);
-    printf("Oro: %d", personaje->Oro);
+    printf("\n");
+    printf("Vida personaje: %d\n", personaje->Vida);
+    printf("Armadura: %s / %d\n", personaje->Armadura->Nombre_Item, personaje->Armadura->Dano_vida_Armadura);
+    printf("Arma: %s / %d\n", personaje->Arma->Nombre_Item, personaje->Arma->Dano_vida_Armadura);
+    printf("Oro: %d\n", personaje->Oro);
+    printf("\n");
 }
 
 void Cargarenemigos(HashMap* Map){
@@ -495,7 +534,7 @@ void Cargarenemigos(HashMap* Map){
         e = (Enemigo*)malloc(sizeof(Enemigo));
 
         k++; 
-        if(k==51) break;
+        if(k==10) break;
     }
 }
 
@@ -518,12 +557,13 @@ void Cargarobjetos(HashMap* Map){
         o = (Objeto*)malloc(sizeof(Objeto));
 
         k++; 
-        if(k==51) break;
+        if(k==11) break;
     }
 }
 
 void CargarNiveles(Grafo* G){
     Nivel* n = (Nivel*)malloc(sizeof(Nivel));
+    TreeMap* auxtree = createTreeMap(lower_than_int);
     int k=0;
     FILE *fp = fopen ("Niveles.csv","r");
     // Cadena para guardar la linea completa del archivo csv
@@ -531,15 +571,16 @@ void CargarNiveles(Grafo* G){
     fgets (linea, 1023, fp);
     while (fgets (linea, 1023, fp) != NULL){ // Se lee la linea 
 
-        n->nombreNivel = atoi(get_csv_field(linea, 0));
+        strcpy(n->nombreNivel, get_csv_field(linea, 0));
         strcpy(n->camino_izq, get_csv_field(linea, 1));
         strcpy(n->camino_der, get_csv_field(linea, 2));
                     
-        insertTreeMap(G->Niveles, n->nombreNivel, n);
+        insertTreeMap(auxtree, n->nombreNivel, n);
         
         n = (Nivel*)malloc(sizeof(Nivel));
 
         k++; 
-        if(k==51) break;
+        if(k==11) break;
     }
+    G->Niveles = auxtree;
 }
