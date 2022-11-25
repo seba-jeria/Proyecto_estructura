@@ -51,7 +51,7 @@ typedef struct{
 
 typedef struct{
     
-    HashMap* Niveles;
+    TreeMap* Niveles;
     NodoGrafo* nodoinicial;
     NodoGrafo* nodoactual;
 
@@ -59,9 +59,9 @@ typedef struct{
 
 typedef struct{
 
-    char nombreNivel;
-    int camino_der;
-    int camino_izq;
+    int nombreNivel;
+    char camino_der;
+    char camino_izq;
 
 }Nivel;
 
@@ -359,30 +359,54 @@ void tomarobjeto(){
 }
 
 void avanzar(){
-    int opcion;
-    if(grafo->nodoactual == NULL){
-        grafo->nodoactual = grafo->nodoinicial;
-    }
-    else{
-        
-        printf("1. Izquierda o 2. Derecha: ");
-        fflush(stdin);
-        scanf("%d", &opcion);
-        if (opcion == 1){
-            grafo->nodoactual = grafo->nodoactual->nodoizquierdo;
+    Pair* aux = firstTreeMap(grafo->Niveles);
+    Nivel* niveles = aux->value;
+    while(personaje->Vida>0 || aux==NULL){
+        int opcion;
+        if(grafo->nodoactual == NULL){
+            grafo->nodoactual = grafo->nodoinicial;
         }
         else{
-            grafo->nodoactual = grafo->nodoactual->nododerecha;
-        }
-    }
+            printf("1. Izquierda o 2. Derecha: ");
+            fflush(stdin);
+            scanf("%d", &opcion);
+            if (opcion == 1){
+                grafo->nodoactual = grafo->nodoactual->nodoizquierdo;
 
-    if(esnemigo(grafo->nodoactual)){
-        printf("Te has encontrado con un enemigo");
-        combatir();
-    }
-    else{
-        printf("Te has encontrado con un objeto");
-        tomarobjeto();
+                Pair_2* aux_izq = searchMap(Mapaenemigo,niveles->camino_izq);
+                if(aux_izq==NULL){
+                    aux_izq = searchMap(Mapaobjeto,niveles->camino_izq);
+                    Objeto* objeto_izq = aux_izq->value;
+                    grafo->nodoactual->objeto= objeto_izq;
+                }
+                else{
+                    Enemigo* enemigo_izq = aux_izq->value;
+                    grafo->nodoactual->enemigo= enemigo_izq;
+                }
+            }
+            else{
+                grafo->nodoactual = grafo->nodoactual->nododerecha;
+                Pair_2* aux_der = searchMap(Mapaenemigo,niveles->camino_der);
+                if(aux_der==NULL){
+                    aux_der = searchMap(Mapaobjeto,niveles->camino_der);
+                    Objeto* objeto_der = aux_der->value;
+                    grafo->nodoactual->objeto= objeto_der;
+                }
+                else{
+                    Enemigo* enemigo_der = aux_der->value;
+                    grafo->nodoactual->enemigo= enemigo_der;
+                }
+            }
+        }
+        if(esnemigo(grafo->nodoactual)){
+            printf("Te has encontrado con un enemigo");
+            combatir();
+        }
+        else{
+            printf("Te has encontrado con un objeto");
+            tomarobjeto();
+        }
+        aux = nextTreeMap(grafo->Niveles);
     }
 }
 
@@ -509,12 +533,12 @@ void CargarNiveles(Grafo* G){
     fgets (linea, 1023, fp);
     while (fgets (linea, 1023, fp) != NULL){ // Se lee la linea 
 
-        strcpy(n->nombreNivel, get_csv_field(linea, 0)); 
-        n->camino_izq = atoi(get_csv_field(linea, 1));
-        n->camino_der = atoi(get_csv_field(linea, 2));
+        n->nombreNivel = atoi(get_csv_field(linea, 0));
+        strcpy(n->camino_izq, get_csv_field(linea, 1));
+        strcpy(n->camino_der, get_csv_field(linea, 2));
                     
-        insertMap(G->Niveles, n->nombreNivel, n);
-                    
+        insertTreeMap(G->Niveles, n->nombreNivel, n);
+        
         n = (Nivel*)malloc(sizeof(Nivel));
 
         k++; 
